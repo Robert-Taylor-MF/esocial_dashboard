@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+    <header class="mb-8">
+        <h2 class="text-3xl font-bold text-slate-100">Pergaminhos (Extrato Completo)</h2>
+        <p class="text-slate-400">Navegue por todo o seu histórico financeiro e gerencie o loot.</p>
+    </header>
+
+    <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 mb-6 shadow-lg">
+        <form method="GET" action="{% url 'extrato_faturas' %}" class="flex flex-wrap gap-4 items-end">
+            <div>
+                <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Mês</label>
+                <select name="mes" class="bg-slate-900 text-slate-200 border border-slate-700 rounded p-2 focus:border-red-500 outline-none">
+                    <option value="" {% if not mes_atual %}selected{% endif %}>Todos</option>
+                    <option value="1" {% if mes_atual == '1' %}selected{% endif %}>Janeiro</option>
+                    <option value="2" {% if mes_atual == '2' %}selected{% endif %}>Fevereiro</option>
+                    <option value="3" {% if mes_atual == '3' %}selected{% endif %}>Março</option>
+                    <option value="4" {% if mes_atual == '4' %}selected{% endif %}>Abril</option>
+                    <option value="5" {% if mes_atual == '5' %}selected{% endif %}>Maio</option>
+                    <option value="6" {% if mes_atual == '6' %}selected{% endif %}>Junho</option>
+                    <option value="7" {% if mes_atual == '7' %}selected{% endif %}>Julho</option>
+                    <option value="8" {% if mes_atual == '8' %}selected{% endif %}>Agosto</option>
+                    <option value="9" {% if mes_atual == '9' %}selected{% endif %}>Setembro</option>
+                    <option value="10" {% if mes_atual == '10' %}selected{% endif %}>Outubro</option>
+                    <option value="11" {% if mes_atual == '11' %}selected{% endif %}>Novembro</option>
+                    <option value="12" {% if mes_atual == '12' %}selected{% endif %}>Dezembro</option>
+                </select>
+            </div>
+            
+            <div>
+                <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Ano</label>
+                <input type="number" name="ano" value="{{ ano_atual }}" class="w-24 bg-slate-900 text-slate-200 border border-slate-700 rounded p-2 focus:border-red-500 outline-none">
+            </div>
+
+            <div>
+                <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Arma (Cartão)</label>
+                <select name="cartao_id" class="bg-slate-900 text-slate-200 border border-slate-700 rounded p-2 focus:border-red-500 outline-none">
+                    <option value="">Todos os Cartões</option>
+                    {% for cartao in cartoes %}
+                        <option value="{{ cartao.id }}" {% if cartao_selecionado == cartao.id|stringformat:"s" %}selected{% endif %}>{{ cartao.nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <button type="submit" class="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded border border-slate-600 transition-all shadow">
+                Filtrar Registros
+            </button>
+        </form>
+    </div>
+
+    <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                    <th class="py-3 px-4">Data</th>
+                    <th class="py-3 px-4">Estabelecimento</th>
+                    <th class="py-3 px-4 text-center">Classificação (IA)</th>
+                    <th class="py-3 px-4">Responsável</th>
+                    <th class="py-3 px-4 text-right">Valor</th>
+                    <th class="py-3 px-4 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                {% for t in transacoes %}
+                <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                    <td class="py-3 px-4 text-slate-400 whitespace-nowrap">{{ t.data_compra|date:"d/m/Y" }}</td>
+                    
+                    <td class="py-3 px-4 font-medium text-slate-200 min-w-[200px]">
+                        {{ t.descricao }} 
+                        <span class="text-[10px] font-mono text-purple-400 ml-2 block lg:inline">(Ref: {{ t.mes_fatura }}/{{ t.ano_fatura }})</span>
+                    </td>
+                    
+                    <td class="py-3 px-4 text-center">
+                        <select onchange="salvarCategoria('{{ t.id }}', this.value)" class="w-36 bg-slate-900 text-slate-300 border border-slate-600 rounded p-1 text-xs focus:border-red-500 transition-all outline-none cursor-pointer">
+                            <option value="">- Indefinido -</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if t.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    
+                    <td class="py-3 px-4 font-semibold whitespace-nowrap">
+                        {% if t.responsavel.is_owner %}
+                            <span class="text-slate-300">Meu Gasto</span>
+                        {% else %}
+                            <span class="text-red-400">{{ t.responsavel.nome }}</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-3 px-4 text-right font-bold text-slate-100 whitespace-nowrap">R$ {{ t.valor }}</td>
+                    
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <a href="{% url 'ratear_transacao' t.id %}" class="inline-block bg-slate-700 hover:bg-red-600 text-slate-200 py-1 px-3 rounded transition-colors text-xs font-bold shadow">
+                            ⚔️ Dividir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-slate-500 italic">
+                        Nenhum registro encontrado para a conjuração destes filtros.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

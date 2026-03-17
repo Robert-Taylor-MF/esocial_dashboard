@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block conteudo %}
+    <header class="mb-8 flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+        <div>
+            <h2 class="text-3xl font-bold text-slate-100">Visão do Tesouro</h2>
+            <p class="text-slate-400">Resumo dos seus recursos e pontos de vida financeiros.</p>
+        </div>
+        <div class="text-left md:text-right bg-slate-800 md:bg-transparent p-4 md:p-0 rounded-lg border border-slate-700 md:border-none">
+            <p class="text-xs text-slate-500 uppercase tracking-wider font-bold">Mana Total (Renda)</p>
+            <p class="text-2xl font-bold text-purple-400">R$ {{ renda }}</p>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        
+        <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-lg relative overflow-hidden">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-slate-300 font-bold uppercase text-xs tracking-wider flex items-center gap-2">
+                    🛡️ Vitalidade (50%)
+                </h3>
+                <span class="text-xs font-bold {% if pcts.essencial >= 90 %}text-red-500{% else %}text-green-500{% endif %}">
+                    {{ pcts.essencial }}%
+                </span>
+            </div>
+            <p class="text-2xl font-bold text-slate-100 mb-1">R$ {{ gastos.essencial|floatformat:2 }}</p>
+            <p class="text-xs text-slate-500 mb-4">de R$ {{ metas.essencial|floatformat:2 }} permitidos</p>
+            
+            <div class="w-full bg-slate-900 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full {% if pcts.essencial >= 90 %}bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]{% else %}bg-green-500{% endif %} transition-all duration-1000" style="width: {{ pcts.essencial }}%"></div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-lg relative overflow-hidden">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-slate-300 font-bold uppercase text-xs tracking-wider flex items-center gap-2">
+                    ⚡ Stamina (30%)
+                </h3>
+                <span class="text-xs font-bold {% if pcts.emocao >= 90 %}text-red-500{% elif pcts.emocao >= 70 %}text-yellow-500{% else %}text-blue-400{% endif %}">
+                    {{ pcts.emocao }}%
+                </span>
+            </div>
+            <p class="text-2xl font-bold text-slate-100 mb-1">R$ {{ gastos.emocao|floatformat:2 }}</p>
+            <p class="text-xs text-slate-500 mb-4">de R$ {{ metas.emocao|floatformat:2 }} permitidos</p>
+            
+            <div class="w-full bg-slate-900 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full {% if pcts.emocao >= 90 %}bg-red-600 shadow-[0_0_10px_rgba(220,38,38,0.8)]{% elif pcts.emocao >= 70 %}bg-yellow-500{% else %}bg-blue-500{% endif %} transition-all duration-1000" style="width: {{ pcts.emocao }}%"></div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-lg relative overflow-hidden">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-slate-300 font-bold uppercase text-xs tracking-wider flex items-center gap-2">
+                    🔮 Magia / Futuro (20%)
+                </h3>
+                <span class="text-xs font-bold text-purple-400">{{ pcts.futuro }}%</span>
+            </div>
+            <p class="text-2xl font-bold text-slate-100 mb-1">R$ {{ gastos.futuro|floatformat:2 }}</p>
+            <p class="text-xs text-slate-500 mb-4">Meta ideal: R$ {{ metas.futuro|floatformat:2 }}</p>
+            
+            <div class="w-full bg-slate-900 rounded-full h-2.5">
+                <div class="h-2.5 rounded-full bg-purple-500 transition-all duration-1000" style="width: {{ pcts.futuro }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
+        <h3 class="text-xl font-bold text-slate-100 mb-4 border-b border-slate-700 pb-2">Últimos Registros (Loot)</h3>
+        
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+                    <th class="py-3 px-4">Data</th>
+                    <th class="py-3 px-4">Estabelecimento</th>
+                    <th class="py-3 px-4 text-center">Classificação</th>
+                    <th class="py-3 px-4">Responsável</th>
+                    <th class="py-3 px-4 text-right">Valor</th>
+                    <th class="py-3 px-4 text-center">Ações</th>
+                </tr>
+            </thead>
+            <tbody class="text-sm">
+                {% for t in transacoes %}
+                <tr class="border-b border-slate-700/50 hover:bg-slate-700/30 transition-colors">
+                    <td class="py-3 px-4 text-slate-400 whitespace-nowrap">{{ t.data_compra|date:"d/m/Y" }}</td>
+                    
+                    <td class="py-3 px-4 font-medium text-slate-200 min-w-[200px]">
+                        {{ t.descricao }}
+                    </td>
+                    
+                    <td class="py-3 px-4 text-center">
+                        <select onchange="salvarCategoria('{{ t.id }}', this.value)" class="w-36 bg-slate-900 text-slate-300 border border-slate-600 rounded p-1 text-xs focus:border-red-500 transition-all outline-none cursor-pointer">
+                            <option value="">- Indefinido -</option>
+                            {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if t.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.nome }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    
+                    <td class="py-3 px-4 font-semibold whitespace-nowrap">
+                        {% if t.responsavel.is_owner %}
+                            <span class="text-slate-300">Meu Gasto</span>
+                        {% else %}
+                            <span class="text-red-400">{{ t.responsavel.nome }}</span>
+                        {% endif %}
+                    </td>
+                    
+                    <td class="py-3 px-4 text-right font-bold text-slate-100 whitespace-nowrap">R$ {{ t.valor }}</td>
+                    
+                    <td class="py-3 px-4 text-center whitespace-nowrap">
+                        <a href="{% url 'ratear_transacao' t.id %}" class="inline-block bg-slate-700 hover:bg-red-600 text-slate-200 py-1 px-3 rounded transition-colors text-xs font-bold shadow">
+                            ⚔️ Dividir
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="py-8 text-center text-slate-500 italic">
+                        Nenhum registro encontrado. Vá até o Oráculo e importe sua fatura!
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
