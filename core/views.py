@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
@@ -324,6 +325,15 @@ def sala_de_guerra(request):
         renda_obj = RendaMensal.objects.filter(pessoa=dono, mes=m, ano=a).first()
         total_receita = float(renda_obj.valor_liquido) if renda_obj else 0.0
         historico_receitas.append(total_receita)
+        
+    # ==========================================
+    # KPI 3: O Bestiário (Top 5 Ofensores do Mês)
+    # ==========================================
+    # Agrupa por nome do estabelecimento, soma os valores e ordena do maior para o menor
+    top_gastos = gastos_mes.values('descricao').annotate(total=Sum('valor')).order_by('-total')[:5]
+    
+    top_labels = [item['descricao'] for item in top_gastos]
+    top_dados = [float(item['total']) for item in top_gastos]
 
     contexto = {
         'cat_labels': json.dumps(categorias_labels),
@@ -331,6 +341,8 @@ def sala_de_guerra(request):
         'hist_labels': json.dumps(historico_labels),
         'hist_gastos': json.dumps(historico_gastos),
         'hist_receitas': json.dumps(historico_receitas),
+        'top_labels': json.dumps(top_labels),
+        'top_dados': json.dumps(top_dados),
         'mes_atual': str(mes_atual), # Passamos para o select do HTML
         'ano_atual': str(ano_atual),
     }
@@ -347,3 +359,92 @@ def deletar_transacao(request, transacao_id):
         except Exception as e:
             print(f"\n[ERRO API DELETAR] Falha ao destruir: {str(e)}\n")
             return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+        
+# ==========================================
+# MURAL DE RECOMPENSAS E FATURAMENTO
+# ==========================================
+
+def mural_cobrancas(request):
+    # Traz todo mundo da Guilda, exceto você (o Titular)
+    pessoas = Pessoa.objects.filter(is_owner=False)
+    hoje = datetime.now()
+    
+    contexto = {
+        'pessoas': pessoas,
+        'mes_atual': str(hoje.month),
+        'ano_atual': str(hoje.year)
+    }
+    return render(request, 'cobrancas.html', contexto)
+
+def fatura_pdf(request):
+    pessoa_id = request.GET.get('pessoa_id')
+    mes = int(request.GET.get('mes', datetime.now().month))
+    ano = int(request.GET.get('ano', datetime.now().year))
+
+    # Busca o devedor e o dono do sistema (você)
+    aliado = Pessoa.objects.get(id=pessoa_id)
+    dono = Pessoa.objects.filter(is_owner=True).first()
+
+    # Busca as dívidas específicas da pessoa neste mês e soma tudo
+    transacoes = Transacao.objects.filter(responsavel=aliado, mes_fatura=mes, ano_fatura=ano).order_by('data_compra')
+    total = transacoes.aggregate(Sum('valor'))['valor__sum'] or 0
+
+    # Cria a mensagem inteligente para o WhatsApp
+    texto_zap = f"Fala {aliado.nome}! Aqui é o {dono.nome if dono else 'Titular'}. O fechamento da nossa party referente a {mes:02d}/{ano} deu R$ {float(total):.2f}. Segue a fatura! ⚔️"
+    
+    # Monta o link da API do WhatsApp (se ele tiver telefone cadastrado)
+    link_zap = ""
+    if aliado.telefone:
+        numero_limpo = ''.join(filter(str.isdigit, aliado.telefone))
+        link_zap = f"https://wa.me/55{numero_limpo}?text={urllib.parse.quote(texto_zap)}"
+
+    contexto = {
+        'aliado': aliado,
+        'dono': dono,
+        'transacoes': transacoes,
+        'total': float(total),
+        'mes': f"{mes:02d}",
+        'ano': ano,
+        'link_zap': link_zap,
+        'data_emissao': datetime.now().strftime('%d/%m/%Y')
+    }
+    
+    return render(request, 'fatura_pdf.html', contexto)
+
+# ==========================================
+# FORJA DE TRANSMUTAÇÃO (EDIÇÃO UNIVERSAL)
+# ==========================================
+def editar_cadastro(request, tipo, id):
+    # Um "dicionário mágico" que mapeia o que você clicou para o modelo e formulário corretos
+    mapa_modelos = {
+        'cartao': (CartaoCredito, CartaoCreditoForm, 'Arma (Cartão)'),
+        'pessoa': (Pessoa, PessoaForm, 'Aliado (Pessoa)'),
+        'categoria': (Categoria, CategoriaForm, 'Encantamento (Categoria)'),
+        'renda': (RendaMensal, RendaMensalForm, 'Mana (Renda)'),
+    }
+
+    # Se alguém tentar acessar uma URL que não existe, joga de volta pro QG
+    if tipo not in mapa_modelos:
+        return redirect('central_cadastros')
+
+    Modelo, Formulario, nome_entidade = mapa_modelos[tipo]
+    
+    # Busca o item exato no banco de dados
+    instancia = get_object_or_404(Modelo, id=id)
+
+    if request.method == 'POST':
+        # Carrega o formulário com os dados novos enviados pela tela, substituindo a instância velha
+        form = Formulario(request.POST, instance=instancia)
+        if form.is_valid():
+            form.save()
+            return redirect('central_cadastros')
+    else:
+        # Se for GET, apenas desenha o formulário já preenchido com os dados atuais
+        form = Formulario(instance=instancia)
+
+    contexto = {
+        'form': form,
+        'nome_entidade': nome_entidade,
+        'tipo': tipo,
+    }
+    return render(request, 'editar_cadastro.html', contexto)

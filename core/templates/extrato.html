@@ -49,15 +49,32 @@
     </div>
 
     <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-xl overflow-x-auto">
-        <table class="w-full text-left border-collapse">
+        <table id="tabelaLoot" class="w-full text-left border-collapse">
             <thead>
                 <tr class="text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
-                    <th class="py-3 px-4">Data</th>
-                    <th class="py-3 px-4">Estabelecimento</th>
-                    <th class="py-3 px-4 text-center">Classificação (IA)</th>
-                    <th class="py-3 px-4">Responsável</th>
-                    <th class="py-3 px-4 text-right">Valor</th>
-                    <th class="py-3 px-4 text-center">Ações</th>
+                    <th class="py-2 px-4 align-top">
+                        Data
+                        <input type="text" class="filtro-coluna w-full mt-2 bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-slate-300 focus:border-red-500 outline-none placeholder-slate-600" placeholder="Filtrar..." onkeyup="aplicarFiltros('tabelaLoot')">
+                    </th>
+                    <th class="py-2 px-4 align-top">
+                        Estabelecimento
+                        <input type="text" class="filtro-coluna w-full mt-2 bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-slate-300 focus:border-red-500 outline-none placeholder-slate-600" placeholder="Buscar nome..." onkeyup="aplicarFiltros('tabelaLoot')">
+                    </th>
+                    <th class="py-2 px-4 align-top text-center">
+                        Classificação
+                        <input type="text" class="filtro-coluna w-full mt-2 bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-slate-300 focus:border-red-500 outline-none placeholder-slate-600" placeholder="Ex: Lazer..." onkeyup="aplicarFiltros('tabelaLoot')">
+                    </th>
+                    <th class="py-2 px-4 align-top">
+                        Responsável
+                        <input type="text" class="filtro-coluna w-full mt-2 bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-slate-300 focus:border-red-500 outline-none placeholder-slate-600" placeholder="Dono..." onkeyup="aplicarFiltros('tabelaLoot')">
+                    </th>
+                    <th class="py-2 px-4 align-top text-right">
+                        Valor
+                        <input type="text" class="filtro-coluna w-full mt-2 bg-slate-900 border border-slate-700 rounded p-1 text-[10px] text-slate-300 focus:border-red-500 outline-none placeholder-slate-600" placeholder="R$..." onkeyup="aplicarFiltros('tabelaLoot')">
+                    </th>
+                    <th class="py-2 px-4 align-top text-center">
+                        Ações
+                        </th>
                 </tr>
             </thead>
             <tbody class="text-sm">
@@ -110,4 +127,48 @@
             </tbody>
         </table>
     </div>
+
+    <script>
+        function aplicarFiltros(idTabela) {
+            const tabela = document.getElementById(idTabela);
+            const linhas = tabela.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+            const inputsFiltro = tabela.querySelectorAll('.filtro-coluna');
+
+            // Percorre todas as linhas da tabela (o seu Loot)
+            Array.from(linhas).forEach(linha => {
+                // Ignora a linha de "Nenhum registro encontrado"
+                if (linha.cells.length === 1) return;
+
+                let mostrarLinha = true;
+
+                // Cruza o texto digitado em cada coluna com o conteúdo da célula
+                inputsFiltro.forEach((input, index) => {
+                    const textoFiltro = input.value.toLowerCase().trim();
+                    
+                    if (textoFiltro !== "") {
+                        const celula = linha.getElementsByTagName('td')[index];
+                        if (celula) {
+                            let textoCelula = celula.textContent || celula.innerText;
+                            
+                            // Truque ninja: Se a célula for um <select> (como Categoria ou Pessoa), 
+                            // pega o texto da opção que está selecionada!
+                            const select = celula.querySelector('select');
+                            if (select) {
+                                textoCelula = select.options[select.selectedIndex].text;
+                            }
+
+                            // Se a célula NÃO contiver o que foi digitado, marcamos para esconder a linha
+                            if (!textoCelula.toLowerCase().includes(textoFiltro)) {
+                                mostrarLinha = false;
+                            }
+                        }
+                    }
+                });
+
+                // Aplica a invisibilidade ou visibilidade instantânea
+                linha.style.display = mostrarLinha ? "" : "none";
+            });
+        }
+    </script>
+    
 {% endblock %}

@@ -11,6 +11,7 @@ class Pessoa(models.Model):
         default=False, 
         help_text="Marque True apenas para o seu perfil. False para os amigos."
     )
+    chave_pix = models.CharField(max_length=150, blank=True, null=True)
     ativo = models.BooleanField(default=True)
     
     def __str__(self):

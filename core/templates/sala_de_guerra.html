@@ -5,7 +5,7 @@
         <div>
             <h2 class="text-3xl font-bold text-slate-100">Sala de Guerra (Data Analytics)</h2>
             <p class="text-slate-400">Análise tática da sua economia e projeção de recursos.</p>
-            
+
             <form method="GET" action="{% url 'sala_de_guerra' %}" class="mt-4 flex items-center gap-2">
                 <span class="text-slate-500 text-xs font-bold uppercase tracking-wider mr-1">Competência Tática:</span>
                 <select name="mes" onchange="this.form.submit()" class="bg-slate-900 text-slate-300 border border-slate-700 rounded p-1 text-sm focus:border-yellow-500 outline-none cursor-pointer transition-colors shadow-sm">
@@ -39,6 +39,14 @@
             <div class="relative h-64 w-full">
                 <canvas id="graficoEvolucao"></canvas>
             </div>
+        </div>
+
+        <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 shadow-xl mb-8">
+            <h3 class="text-lg font-bold text-slate-200 mb-4 border-b border-slate-700 pb-2 flex items-center gap-2">
+                <i data-lucide="crosshair" class="w-5 h-5 text-red-500"></i> O Bestiário (Top 5 Ofensores de Mana)
+            </h3>
+            <div class="relative h-72 w-full">
+                <canvas id="graficoTopOfensores"></canvas>
         </div>
     </div>
 
@@ -149,5 +157,51 @@
         } catch (erro2) {
             console.error("Erro ao forjar o Histórico de Batalha:", erro2);
         }
+
+        const topLabels = {{ top_labels|safe }};
+        const topDados = {{ top_dados|safe }};
+
+        // ==========================================
+        // GRÁFICO 3 (TOP 5 HORIZONTAL)
+        // ==========================================
+        try {
+            const ctxTop = document.getElementById('graficoTopOfensores');
+            new Chart(ctxTop, {
+                type: 'bar',
+                data: {
+                    labels: topLabels,
+                    datasets: [{
+                        label: 'Dano Causado (R$)',
+                        data: topDados,
+                        backgroundColor: 'rgba(245, 158, 11, 0.5)', // Laranja translúcido
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    indexAxis: 'y', // MÁGICA: Transforma a barra vertical em horizontal
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(51, 65, 85, 0.5)' },
+                            ticks: { color: '#94a3b8' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#e2e8f0', font: { weight: 'bold' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false } // Esconde a legenda para focar no nome e valor
+                    }
+                }
+            });
+        } catch (erro3) {
+            console.error("Erro ao forjar o Bestiário:", erro3);
+        }
+
     </script>
 {% endblock %}

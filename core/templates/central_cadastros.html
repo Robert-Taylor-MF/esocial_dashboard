@@ -9,37 +9,54 @@
     {% if messages %}
         <div class="mb-6">
             {% for message in messages %}
-                <div class="p-4 rounded-md bg-green-900/50 text-green-400 border border-green-800">{{ message }}</div>
+                <div class="p-4 rounded-md bg-green-900/50 text-green-400 border border-green-800 flex items-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i> {{ message }}
+                </div>
             {% endfor %}
         </div>
     {% endif %}
 
     <div class="border-b border-slate-700 mb-6 flex gap-4 overflow-x-auto">
-        <button onclick="mudarAba('renda')" id="btn-renda" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-purple-400 transition-colors whitespace-nowrap">🪙 Tesouraria (Renda)</button>
-        <button onclick="mudarAba('pessoas')" id="btn-pessoas" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-red-400 transition-colors whitespace-nowrap">🛡️ Guilda (Pessoas)</button>
-        <button onclick="mudarAba('cartoes')" id="btn-cartoes" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-blue-400 transition-colors whitespace-nowrap">💳 Arsenal (Cartões)</button>
-        <button onclick="mudarAba('categorias')" id="btn-categorias" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-yellow-400 transition-colors whitespace-nowrap">📚 Grimório (Categorias)</button>
+        <button onclick="mudarAba('renda')" id="btn-renda" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-purple-400 transition-colors whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="coins" class="w-4 h-4"></i> Tesouraria (Renda)
+        </button>
+        <button onclick="mudarAba('pessoas')" id="btn-pessoas" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-red-400 transition-colors whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="users" class="w-4 h-4"></i> Guilda (Pessoas)
+        </button>
+        <button onclick="mudarAba('cartoes')" id="btn-cartoes" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-blue-400 transition-colors whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="credit-card" class="w-4 h-4"></i> Arsenal (Cartões)
+        </button>
+        <button onclick="mudarAba('categorias')" id="btn-categorias" class="aba-btn px-4 py-2 text-slate-400 font-bold border-b-2 border-transparent hover:text-yellow-400 transition-colors whitespace-nowrap flex items-center gap-2">
+            <i data-lucide="book-marked" class="w-4 h-4"></i> Grimório (Categorias)
+        </button>
     </div>
 
     <div id="aba-renda" class="aba-conteudo hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 h-fit lg:col-span-1">
-            <h3 class="text-xl font-bold text-purple-400 mb-4">Canalizar Mana (Novo Salário)</h3>
+            <h3 class="text-xl font-bold text-purple-400 mb-4 border-b border-slate-700 pb-2">Canalizar Mana (Novo Salário)</h3>
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="acao" value="renda">
                 <div class="space-y-4">{{ form_renda.as_p }}</div>
-                <button type="submit" class="mt-6 w-full px-6 py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded shadow transition-all">Registar Renda</button>
+                <button type="submit" class="mt-6 w-full px-6 py-2 bg-purple-700 hover:bg-purple-600 text-white font-bold rounded shadow transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i> Registar Renda
+                </button>
             </form>
         </div>
         <div class="lg:col-span-2 space-y-4">
             <h3 class="text-xl font-bold text-slate-200 mb-4">Histórico de Recebimentos</h3>
             {% for r in rendas %}
-                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center transition-all hover:border-slate-500">
                     <div>
                         <h4 class="font-bold text-slate-100">{{ r.pessoa.nome }}</h4>
                         <p class="text-sm text-slate-400">Competência: Mês {{ r.mes }} / {{ r.ano }}</p>
                     </div>
-                    <div class="text-right font-bold text-green-400 text-lg">R$ {{ r.valor_liquido }}</div>
+                    <div class="text-right flex items-center gap-4">
+                        <span class="font-bold text-green-400 text-lg">R$ {{ r.valor_liquido }}</span>
+                        <a href="{% url 'editar_cadastro' 'renda' r.id %}" class="text-slate-500 hover:text-blue-400 transition-colors" title="Editar Registro">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </a>
+                    </div>
                 </div>
             {% endfor %}
         </div>
@@ -47,20 +64,28 @@
 
     <div id="aba-pessoas" class="aba-conteudo hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 h-fit lg:col-span-1">
-            <h3 class="text-xl font-bold text-red-400 mb-4">Recrutar Aliado</h3>
+            <h3 class="text-xl font-bold text-red-400 mb-4 border-b border-slate-700 pb-2">Recrutar Aliado</h3>
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="acao" value="pessoa">
                 <div class="space-y-4">{{ form_pessoa.as_p }}</div>
-                <button type="submit" class="mt-6 w-full px-6 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded shadow transition-all">Adicionar à Party</button>
+                <button type="submit" class="mt-6 w-full px-6 py-2 bg-red-700 hover:bg-red-600 text-white font-bold rounded shadow transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> Adicionar à Party
+                </button>
             </form>
         </div>
         <div class="lg:col-span-2 space-y-4">
             <h3 class="text-xl font-bold text-slate-200 mb-4">Membros Ativos</h3>
             {% for p in pessoas %}
-                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center transition-all hover:border-slate-500">
                     <div>
                         <h4 class="font-bold text-slate-100">{{ p.nome }} {% if p.is_owner %}<span class="ml-2 text-[10px] bg-red-900/50 text-red-400 px-2 py-1 rounded">TITULAR</span>{% endif %}</h4>
+                        {% if p.telefone %}<p class="text-xs text-slate-400 mt-1">{{ p.telefone }}</p>{% endif %}
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <a href="{% url 'editar_cadastro' 'pessoa' p.id %}" class="text-slate-500 hover:text-blue-400 transition-colors" title="Editar Registro">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </a>
                     </div>
                 </div>
             {% endfor %}
@@ -69,22 +94,30 @@
 
     <div id="aba-cartoes" class="aba-conteudo hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 h-fit lg:col-span-1">
-            <h3 class="text-xl font-bold text-blue-400 mb-4">Forjar Cartão</h3>
+            <h3 class="text-xl font-bold text-blue-400 mb-4 border-b border-slate-700 pb-2">Forjar Cartão</h3>
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="acao" value="cartao">
                 <div class="space-y-4">{{ form_cartao.as_p }}</div>
-                <button type="submit" class="mt-6 w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded shadow transition-all">Guardar Arma</button>
+                <button type="submit" class="mt-6 w-full px-6 py-2 bg-blue-700 hover:bg-blue-600 text-white font-bold rounded shadow transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="credit-card" class="w-4 h-4"></i> Guardar Arma
+                </button>
             </form>
         </div>
         <div class="lg:col-span-2 space-y-4">
+            <h3 class="text-xl font-bold text-slate-200 mb-4">Armamento Disponível</h3>
             {% for cartao in cartoes %}
-                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center transition-all hover:border-slate-500">
                     <div>
                         <h4 class="font-bold text-slate-100">{{ cartao.nome }}</h4>
                         <p class="text-sm text-slate-400">Vence dia {{ cartao.dia_vencimento }}</p>
                     </div>
-                    <div class="text-right text-green-500 font-bold">R$ {{ cartao.limite_total }}</div>
+                    <div class="text-right flex items-center gap-4">
+                        <span class="text-green-500 font-bold">R$ {{ cartao.limite_total }}</span>
+                        <a href="{% url 'editar_cadastro' 'cartao' cartao.id %}" class="text-slate-500 hover:text-blue-400 transition-colors" title="Editar Registro">
+                            <i data-lucide="pencil" class="w-4 h-4"></i>
+                        </a>
+                    </div>
                 </div>
             {% endfor %}
         </div>
@@ -92,18 +125,24 @@
 
     <div id="aba-categorias" class="aba-conteudo hidden grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div class="bg-slate-800 p-6 rounded-lg border border-slate-700 h-fit lg:col-span-1">
-            <h3 class="text-xl font-bold text-yellow-400 mb-4">Nova Categoria</h3>
+            <h3 class="text-xl font-bold text-yellow-400 mb-4 border-b border-slate-700 pb-2">Nova Categoria</h3>
             <form method="POST">
                 {% csrf_token %}
                 <input type="hidden" name="acao" value="categoria">
                 <div class="space-y-4">{{ form_categoria.as_p }}</div>
-                <button type="submit" class="mt-6 w-full px-6 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold rounded shadow transition-all">Aprender Feitiço</button>
+                <button type="submit" class="mt-6 w-full px-6 py-2 bg-yellow-700 hover:bg-yellow-600 text-white font-bold rounded shadow transition-all flex justify-center items-center gap-2">
+                    <i data-lucide="wand-2" class="w-4 h-4"></i> Aprender Feitiço
+                </button>
             </form>
         </div>
         <div class="lg:col-span-2 space-y-4">
+            <h3 class="text-xl font-bold text-slate-200 mb-4">Feitiços Conhecidos</h3>
             {% for c in categorias %}
-                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700">
+                <div class="bg-slate-800 p-4 rounded-lg border border-slate-700 flex justify-between items-center transition-all hover:border-slate-500">
                     <h4 class="font-bold text-slate-100">{{ c.nome }} <span class="text-xs text-slate-500 ml-2">({{ c.get_tipo_regra_display }})</span></h4>
+                    <a href="{% url 'editar_cadastro' 'categoria' c.id %}" class="text-slate-500 hover:text-blue-400 transition-colors" title="Editar Registro">
+                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                    </a>
                 </div>
             {% endfor %}
         </div>
@@ -113,14 +152,26 @@
         function mudarAba(abaId) {
             // Esconde todos os conteúdos e remove destaque dos botões
             document.querySelectorAll('.aba-conteudo').forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('.aba-btn').forEach(el => el.classList.remove('border-slate-300', 'text-slate-100'));
+            document.querySelectorAll('.aba-btn').forEach(el => {
+                el.classList.remove('border-slate-300', 'text-slate-100');
+                el.classList.add('border-transparent');
+            });
             
             // Mostra a aba selecionada
             document.getElementById('aba-' + abaId).classList.remove('hidden');
-            document.getElementById('btn-' + abaId).classList.add('border-slate-300', 'text-slate-100');
+            const btnSelecionado = document.getElementById('btn-' + abaId);
+            btnSelecionado.classList.remove('border-transparent');
+            btnSelecionado.classList.add('border-slate-300', 'text-slate-100');
+            
+            // Recarrega os ícones caso algum tenha ficado oculto pela troca de display
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         }
         
-        // Inicia na aba de Renda
-        mudarAba('renda');
+        // Inicia na aba de Renda ao carregar a página
+        document.addEventListener("DOMContentLoaded", function() {
+            mudarAba('renda');
+        });
     </script>
 {% endblock %}
