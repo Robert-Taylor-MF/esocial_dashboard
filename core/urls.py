@@ -10,4 +10,5 @@ urlpatterns = [
     path('api/atualizar-responsavel/<int:transacao_id>/', views.atualizar_responsavel, name='atualizar_responsavel'),
     path('api/atualizar-categoria/<int:transacao_id>/', views.atualizar_categoria, name='atualizar_categoria'),
     path('sala-de-guerra/', views.sala_de_guerra, name='sala_de_guerra'),
+    path('api/deletar-transacao/<int:transacao_id>/', views.deletar_transacao, name='deletar_transacao'),
 ]

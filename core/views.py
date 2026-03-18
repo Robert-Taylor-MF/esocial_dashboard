@@ -336,3 +336,14 @@ def sala_de_guerra(request):
     }
     
     return render(request, 'sala_de_guerra.html', contexto)
+
+@csrf_exempt
+def deletar_transacao(request, transacao_id):
+    if request.method == 'DELETE': # Note que agora usamos o método DELETE
+        try:
+            transacao = Transacao.objects.get(id=transacao_id)
+            transacao.delete()
+            return JsonResponse({'status': 'sucesso', 'mensagem': 'Loot obliterado!'})
+        except Exception as e:
+            print(f"\n[ERRO API DELETAR] Falha ao destruir: {str(e)}\n")
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)

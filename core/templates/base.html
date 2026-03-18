@@ -3,162 +3,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle Financeiro | Dashboard</title>
+    <title>ForjaDev - RPG Financeiro</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Uma fonte mais sóbria e imersiva */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="bg-slate-900 text-slate-200 min-h-screen flex">
-
+    
     <div style="display: none;">
         {% csrf_token %}
     </div>
 
-    <aside class="w-64 bg-slate-950 border-r border-slate-800 flex flex-col">
-        <div class="p-6 border-b border-slate-800">
-            <h1 class="text-2xl font-bold text-red-500 tracking-wider uppercase">Nexus<span class="text-slate-100">Fin</span></h1>
-            <p class="text-xs text-slate-500 mt-1">Gestão de Recursos</p>
+    <aside class="w-64 bg-slate-800 border-r border-slate-700 flex flex-col shadow-2xl z-10 hidden md:flex">
+        <div class="p-6 border-b border-slate-700 flex items-center gap-3">
+            <i data-lucide="shield" class="text-red-600 w-8 h-8"></i>
+            <h1 class="text-2xl font-black tracking-tighter text-slate-100 uppercase">Forja<span class="text-red-600">Dev</span></h1>
         </div>
-
+        
         <nav class="flex-1 p-4 space-y-2">
-            <a href="{% url 'dashboard' %}" class="block px-4 py-3 rounded-md bg-slate-800 text-slate-100 hover:bg-slate-700 hover:text-red-400 transition-colors">
-                Visão Geral
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 rounded-md text-slate-300 hover:bg-slate-700 hover:text-white transition-colors font-medium">
+                <i data-lucide="layout-dashboard" class="w-5 h-5 text-slate-400"></i> Visão Geral
             </a>
-            
-            <a href="{% url 'importar_fatura' %}" class="block px-4 py-3 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors">
-                O Oráculo (IA)
+            <a href="{% url 'extrato_faturas' %}" class="flex items-center gap-3 px-4 py-3 rounded-md text-slate-300 hover:bg-slate-700 hover:text-white transition-colors font-medium">
+                <i data-lucide="scroll-text" class="w-5 h-5 text-slate-400"></i> Pergaminhos (Extrato)
             </a>
-            
-            <a href="{% url 'sala_de_guerra' %}" class="block px-4 py-3 rounded-md text-slate-400 hover:bg-slate-800 hover:text-yellow-400 transition-colors">
-                Sala de Guerra (KPIs)
+            <a href="{% url 'importar_fatura' %}" class="flex items-center gap-3 px-4 py-3 rounded-md text-slate-300 hover:bg-slate-700 hover:text-white transition-colors font-medium">
+                <i data-lucide="cpu" class="w-5 h-5 text-purple-400"></i> O Oráculo (IA)
             </a>
-
-            <a href="{% url 'extrato_faturas' %}" class="block px-4 py-3 rounded-md text-slate-400 hover:bg-slate-800 hover:text-slate-100 transition-colors">
-                Histórico de faturas
+            <a href="{% url 'sala_de_guerra' %}" class="flex items-center gap-3 px-4 py-3 rounded-md text-slate-300 hover:bg-slate-700 hover:text-white transition-colors font-medium">
+                <i data-lucide="pie-chart" class="w-5 h-5 text-yellow-500"></i> Sala de Guerra
             </a>
-               
         </nav>
-
-        <div class="p-4 border-t border-slate-800">
-            <a href="{% url 'central_cadastros' %}" class="block w-full text-center px-4 py-2 bg-red-900/30 border border-red-900 text-red-400 rounded-md hover:bg-red-900/50 transition-colors text-sm uppercase tracking-wide font-semibold">
-                ⚙️ Central de Cadastros
+        
+        <div class="p-4 border-t border-slate-700">
+            <a href="{% url 'central_cadastros' %}" class="flex items-center justify-center gap-2 w-full px-4 py-2 bg-slate-900 border border-slate-600 text-slate-300 rounded-md hover:bg-slate-700 hover:border-slate-500 transition-colors text-sm uppercase tracking-wide font-bold shadow-inner">
+                <i data-lucide="settings" class="w-4 h-4"></i> Quartel-General
             </a>
-            <a href="/admin/" target="_blank" class="block w-full text-center px-4 py-2 bg-slate-900 border border-slate-700 text-slate-400 rounded-md hover:bg-slate-800 hover:text-purple-400 hover:border-purple-900/50 transition-all text-xs uppercase tracking-wider">
-                Painel Django (Admin)
-            </a>
-            <p class="text-[10px] text-slate-500 text-center mt-2">Pessoas, Cartões e Categorias</p>
         </div>
     </aside>
 
-    <main class="flex-1 p-8">
+    <main class="flex-1 p-8 overflow-y-auto">
         {% block conteudo %}
         {% endblock %}
     </main>
 
-</body>
-
-<script>
-    // Função universal para ler Cookies (Padrão ouro do Django)
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    function salvarCategoria(transacaoId, categoriaId) {
-        // Agora pegamos o token limpo diretamente do navegador
-        const csrftoken = getCookie('csrftoken');
-
-        fetch(`/api/atualizar-categoria/${transacaoId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify({ categoria_id: categoriaId })
-        })
-        .then(response => {
-            if (response.ok) {
-                console.log(`Transação ${transacaoId} reclassificada no banco de dados!`);
-            } else {
-                alert('O servidor bloqueou a requisição. Verifique o terminal do Django.');
-            }
-        })
-        .catch(error => {
-            console.error("Falha na rede:", error);
-            alert('Erro de comunicação com o Backend.');
+    <script>
+        // 1. INICIALIZAÇÃO BLINDADA DOS ÍCONES LUCIDE
+        // Aguarda o HTML carregar 100% antes de tentar desenhar os SVGs
+        document.addEventListener("DOMContentLoaded", function() {
+            lucide.createIcons();
         });
-    }
-</script>
 
-<script>
-    // Função Blindada: Tenta pegar direto do HTML primeiro, se falhar, tenta o Cookie
-    function obterTokenCSRF() {
-        const inputCsrf = document.querySelector('[name=csrfmiddlewaretoken]');
-        if (inputCsrf) {
-            return inputCsrf.value;
-        }
-        
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, 10) === ('csrftoken=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(10));
-                    break;
+        // 2. BUSCA DO TOKEN DE SEGURANÇA CSRF
+        function obterTokenCSRF() {
+            const inputCsrf = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (inputCsrf) return inputCsrf.value;
+            
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, 10) === ('csrftoken=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(10));
+                        break;
+                    }
                 }
             }
+            return cookieValue;
         }
-        return cookieValue;
-    }
 
-    // SALVAR CATEGORIA
-    function salvarCategoria(transacaoId, categoriaId) {
-        const token = obterTokenCSRF();
-        fetch(`/api/atualizar-categoria/${transacaoId}/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
-            body: JSON.stringify({ categoria_id: categoriaId })
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload(); 
-            } else {
-                alert('Erro na Forja! O servidor bloqueou a classificação da categoria.');
+        // 3. API DE ATUALIZAÇÃO DE CATEGORIA
+        function salvarCategoria(transacaoId, categoriaId) {
+            const token = obterTokenCSRF();
+            fetch(`/api/atualizar-categoria/${transacaoId}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
+                body: JSON.stringify({ categoria_id: categoriaId })
+            }).then(response => {
+                if (response.ok) window.location.reload(); 
+                else alert('Erro na Forja! O servidor bloqueou a classificação da categoria.');
+            }).catch(erro => alert('Falha de conexão ao salvar a categoria.'));
+        }
+
+        // 4. API DE ATUALIZAÇÃO DE RESPONSÁVEL
+        function salvarResponsavel(transacaoId, pessoaId) {
+            const token = obterTokenCSRF();
+            fetch(`/api/atualizar-responsavel/${transacaoId}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
+                body: JSON.stringify({ pessoa_id: pessoaId })
+            }).then(response => {
+                if (response.ok) window.location.reload(); 
+                else alert('Erro na Forja! O servidor bloqueou a alteração do responsável.');
+            }).catch(erro => alert('Falha de conexão ao salvar o responsável.'));
+        }
+
+        // 5. API DE DESTRUIÇÃO (LIXEIRA)
+        function deletarTransacao(transacaoId) {
+            if(confirm("Tem certeza que deseja obliterar este registro? Esta ação não pode ser desfeita.")) {
+                const token = obterTokenCSRF();
+                fetch(`/api/deletar-transacao/${transacaoId}/`, {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token }
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload(); 
+                    } else {
+                        alert('O feitiço falhou! O servidor protegeu o registro.');
+                    }
+                }).catch(erro => alert('Falha de conexão com a Forja.'));
             }
-        }).catch(erro => alert('Falha de conexão ao salvar a categoria.'));
-    }
-
-    // SALVAR RESPONSÁVEL
-    function salvarResponsavel(transacaoId, pessoaId) {
-        const token = obterTokenCSRF();
-        fetch(`/api/atualizar-responsavel/${transacaoId}/`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
-            body: JSON.stringify({ pessoa_id: pessoaId })
-        }).then(response => {
-            if (response.ok) {
-                window.location.reload(); 
-            } else {
-                alert('Erro na Forja! O servidor bloqueou a alteração do responsável.');
-            }
-        }).catch(erro => alert('Falha de conexão ao salvar o responsável.'));
-    }
-</script>
-
+        }
+    </script>
 </body>
-</html>
-
 </html>
