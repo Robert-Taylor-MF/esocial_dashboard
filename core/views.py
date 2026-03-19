@@ -1,5 +1,7 @@
 import json
 import urllib.parse
+import decimal
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect, get_object_or_404
@@ -7,11 +9,12 @@ from django.contrib import messages
 from django.db.models import Sum, Q
 from decimal import Decimal
 from datetime import datetime
-from .models import CartaoCredito, Transacao, Pessoa, Categoria, RendaMensal
+from .models import CartaoCredito, Transacao, Pessoa, Categoria, RendaMensal, Instituicao, Cofre
 from .services import processar_fatura_pdf
-from .forms import CartaoCreditoForm, PessoaForm, CategoriaForm, RendaMensalForm
+from .forms import CartaoCreditoForm, PessoaForm, CategoriaForm, RendaMensalForm, InstituicaoForm, CofreForm
 from .forms import DespesaAvulsaForm
 
+@login_required
 def dashboard(request):
     # ==========================================
     # INTERCEPTADOR DE LANÇAMENTO MANUAL (POST)
@@ -95,6 +98,7 @@ def dashboard(request):
     
     return render(request, 'dashboard.html', contexto)
 
+@login_required
 def importar_fatura(request):
     # Busca os cartões no banco para montar o "Select" (dropdown) na tela
     cartoes = CartaoCredito.objects.all()
@@ -118,6 +122,7 @@ def importar_fatura(request):
             
     return render(request, 'importar_fatura.html', {'cartoes': cartoes})
 
+@login_required
 def central_cadastros(request):
     if request.method == 'POST':
         acao = request.POST.get('acao')
@@ -150,6 +155,7 @@ def central_cadastros(request):
     }
     return render(request, 'central_cadastros.html', contexto)
 
+@login_required
 def ratear_transacao(request, transacao_id):
     # Puxa a transação original do banco
     transacao_original = get_object_or_404(Transacao, id=transacao_id)
@@ -200,7 +206,8 @@ def ratear_transacao(request, transacao_id):
         'transacao': transacao_original,
         'pessoas': pessoas
     })
-    
+
+@login_required    
 def extrato_faturas(request):
     transacoes = Transacao.objects.all().order_by('-data_compra')
     cartoes = CartaoCredito.objects.all()
@@ -272,7 +279,8 @@ def atualizar_responsavel(request, transacao_id):
             # Imprime o erro real no terminal negro do Django
             print(f"\n[ERRO API RESPONSAVEL] Falha ao forjar: {str(e)}\n")
             return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
-        
+
+@login_required        
 def sala_de_guerra(request):
     dono = Pessoa.objects.filter(is_owner=True).first()
     hoje = datetime.now()
@@ -364,6 +372,7 @@ def deletar_transacao(request, transacao_id):
 # MURAL DE RECOMPENSAS E FATURAMENTO
 # ==========================================
 
+@login_required
 def mural_cobrancas(request):
     # Traz todo mundo da Guilda, exceto você (o Titular)
     pessoas = Pessoa.objects.filter(is_owner=False)
@@ -376,6 +385,7 @@ def mural_cobrancas(request):
     }
     return render(request, 'cobrancas.html', contexto)
 
+@login_required
 def fatura_pdf(request):
     pessoa_id = request.GET.get('pessoa_id')
     mes = int(request.GET.get('mes', datetime.now().month))
@@ -414,6 +424,7 @@ def fatura_pdf(request):
 # ==========================================
 # FORJA DE TRANSMUTAÇÃO (EDIÇÃO UNIVERSAL)
 # ==========================================
+@login_required
 def editar_cadastro(request, tipo, id):
     # Um "dicionário mágico" que mapeia o que você clicou para o modelo e formulário corretos
     mapa_modelos = {
@@ -448,3 +459,63 @@ def editar_cadastro(request, tipo, id):
         'tipo': tipo,
     }
     return render(request, 'editar_cadastro.html', contexto)
+
+# ==========================================
+# BANCO DA GUILDA (WEALTH MANAGEMENT)
+# ==========================================
+
+@login_required
+def banco_guilda(request):
+    # Processa o envio dos formulários de Nova Instituição ou Novo Cofre
+    if request.method == 'POST':
+        acao = request.POST.get('acao')
+        if acao == 'instituicao':
+            form = InstituicaoForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('banco_guilda')
+        elif acao == 'cofre':
+            form = CofreForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect('banco_guilda')
+
+    # Busca os dados para desenhar a tela
+    instituicoes = Instituicao.objects.all()
+    cofres = Cofre.objects.all().order_by('instituicao__nome')
+    
+    # Calcula todo o seu patrimônio acumulado somando todos os cofres
+    tesouro_total = sum(c.saldo_atual for c in cofres)
+
+    contexto = {
+        'form_instituicao': InstituicaoForm(),
+        'form_cofre': CofreForm(),
+        'cofres': cofres,
+        'instituicoes': instituicoes,
+        'tesouro_total': float(tesouro_total),
+    }
+    return render(request, 'banco_guilda.html', contexto)
+
+@csrf_exempt
+def atualizar_cofre(request, cofre_id):
+    """ API para depositar ou sacar ouro rapidamente sem recarregar a página """
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            valor = decimal.Decimal(str(data.get('valor', 0)))
+            tipo = data.get('tipo') # 'depositar' ou 'sacar'
+            
+            cofre = Cofre.objects.get(id=cofre_id)
+            
+            if tipo == 'depositar':
+                cofre.saldo_atual += valor
+            elif tipo == 'sacar':
+                cofre.saldo_atual -= valor
+                if cofre.saldo_atual < 0:
+                    cofre.saldo_atual = 0 # Não deixa a barra ficar negativa
+                    
+            cofre.save()
+            return JsonResponse({'status': 'sucesso'})
+        except Exception as e:
+            return JsonResponse({'status': 'erro', 'mensagem': str(e)}, status=400)
+    return JsonResponse({'status': 'invalido'}, status=400)

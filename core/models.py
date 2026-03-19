@@ -7,10 +7,7 @@ class Pessoa(models.Model):
     """
     nome = models.CharField(max_length=100)
     telefone = models.CharField(max_length=20, blank=True, null=True)
-    is_owner = models.BooleanField(
-        default=False, 
-        help_text="Marque True apenas para o seu perfil. False para os amigos."
-    )
+    is_owner = models.BooleanField(default=False)
     chave_pix = models.CharField(max_length=150, blank=True, null=True)
     ativo = models.BooleanField(default=True)
     
@@ -102,3 +99,34 @@ class RendaMensal(models.Model):
 
     def __str__(self):
         return f"Renda de {self.pessoa.nome} - {self.mes}/{self.ano}: R$ {self.valor_liquido}"
+    
+# ==========================================
+# BANCO DA GUILDA (WEALTH MANAGEMENT)
+# ==========================================
+
+class Instituicao(models.Model):
+    nome = models.CharField(max_length=100) # Ex: PicPay, Nubank, Bradesco
+    
+    def __str__(self):
+        return self.nome
+
+class Cofre(models.Model):
+    nome = models.CharField(max_length=100) # Ex: Reserva de Emergência, PC Novo
+    meta_valor = models.DecimalField(max_digits=10, decimal_places=2, help_text="O valor total (Boss) que você quer atingir")
+    saldo_atual = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, help_text="Ouro guardado até o momento")
+    instituicao = models.ForeignKey(Instituicao, on_delete=models.CASCADE)
+    
+    # Esta função calcula automaticamente a % de conclusão da sua meta!
+    def progresso(self):
+        if self.meta_valor > 0:
+            pct = (self.saldo_atual / self.meta_valor) * 100
+            return min(int(pct), 100) # Trava em 100% para a barra de XP não vazar da tela
+        return 0
+
+    # Esta função calcula quanto falta para vencer a missão
+    def falta_para_meta(self):
+        faltante = self.meta_valor - self.saldo_atual
+        return faltante if faltante > 0 else 0
+
+    def __str__(self):
+        return self.nome

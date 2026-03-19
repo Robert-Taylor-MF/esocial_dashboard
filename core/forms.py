@@ -1,5 +1,5 @@
 from django import forms
-from .models import CartaoCredito, Pessoa, Categoria, RendaMensal, Transacao
+from .models import CartaoCredito, Pessoa, Categoria, RendaMensal, Transacao, Instituicao, Cofre
         
 class CartaoCreditoForm(forms.ModelForm):
     class Meta:
@@ -15,7 +15,7 @@ class CartaoCreditoForm(forms.ModelForm):
 class PessoaForm(forms.ModelForm):
     class Meta:
         model = Pessoa
-        fields = ['nome', 'telefone', 'is_owner']
+        fields = ['nome', 'telefone', 'chave_pix', 'is_owner']
         widgets = {
             'nome': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200'}),
             'telefone': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200'}),
@@ -56,4 +56,23 @@ class DespesaAvulsaForm(forms.ModelForm):
             'cartao': forms.Select(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200'}),
             'mes_fatura': forms.NumberInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200'}),
             'ano_fatura': forms.NumberInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200'}),
+        }
+        
+class InstituicaoForm(forms.ModelForm):
+    class Meta:
+        model = Instituicao
+        fields = ['nome']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200', 'placeholder': 'Ex: PicPay, Nubank, Digio...'}),
+        }
+
+class CofreForm(forms.ModelForm):
+    class Meta:
+        model = Cofre
+        fields = ['nome', 'meta_valor', 'saldo_atual', 'instituicao']
+        widgets = {
+            'nome': forms.TextInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200', 'placeholder': 'Ex: Reserva de Emergência'}),
+            'meta_valor': forms.NumberInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200', 'step': '0.01'}),
+            'saldo_atual': forms.NumberInput(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200', 'step': '0.01'}),
+            'instituicao': forms.Select(attrs={'class': 'w-full bg-slate-900 border border-slate-700 rounded p-2 text-slate-200'}),
         }

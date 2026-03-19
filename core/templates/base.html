@@ -35,6 +35,9 @@
             <a href="{% url 'mural_cobrancas' %}" class="flex items-center gap-3 px-4 py-3 rounded-md text-slate-300 hover:bg-slate-700 hover:text-green-400 transition-colors font-medium">
                 <i data-lucide="swords" class="w-5 h-5 text-green-500"></i> Caçada (Cobranças)
             </a>
+            <a href="{% url 'banco_guilda' %}" class="flex items-center gap-3 px-4 py-3 rounded-md text-slate-300 hover:bg-slate-700 hover:text-emerald-400 transition-colors font-medium border-l-2 border-transparent hover:border-emerald-500">
+                <i data-lucide="landmark" class="w-5 h-5 text-emerald-500"></i> Banco da Guilda
+            </a>
         </nav>
         
         <div class="p-4 border-t border-slate-700">
@@ -47,6 +50,19 @@
     <main class="flex-1 p-8 overflow-y-auto">
         {% block conteudo %}
         {% endblock %}
+
+        <form method="POST" action="{% url 'logout' %}" class="fixed bottom-8 right-10 z-50">
+            {% csrf_token %}
+            <button type="submit" class="group bg-slate-900 border border-slate-700 hover:border-red-500 hover:bg-red-950/80 text-slate-500 hover:text-red-400 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-110 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] relative">
+                
+                <i data-lucide="door-open" class="w-5 h-5 transition-transform group-hover:-translate-x-0.5"></i>
+                
+                <span class="absolute right-16 top-1/2 -translate-y-1/2 bg-slate-950 text-red-400 text-[10px] font-bold px-3 py-1.5 rounded border border-red-900 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none tracking-widest uppercase">
+                    Abandonar Forja
+                </span>
+                
+            </button>
+        </form>
     </main>
 
     <script>
